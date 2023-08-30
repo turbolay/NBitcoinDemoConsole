@@ -70,9 +70,19 @@ namespace NBitcoinDemoConsole
 			List<Coin> result = new();
 			foreach (var address in addresses)
 			{
-				client.GenerateToAddress(1, address);
-				var block = client.GetBlock(client.GetBestBlockHash());
-				result.Add(new Coin(new OutPoint(block.Transactions.First().GetHash(), 1), block.Transactions.First().Outputs.First()));
+				var blockHash = client.GenerateToAddress(1, address);
+				var bestBlock = client.GetBlock(blockHash.First());
+
+				if (bestBlock.Transactions.Count > 0)
+				{
+					var coinbaseTx = bestBlock.Transactions[0]; // Assuming the first transaction is the coinbase
+					var coinbaseOutput = coinbaseTx.Outputs[0]; // Assuming you want the second output of the coinbase
+
+					var coinbaseOutPoint = new OutPoint(coinbaseTx.GetHash(), 0); // Assuming you want the second output
+					var newCoin = new Coin(coinbaseOutPoint, coinbaseOutput);
+
+					result.Add(newCoin);
+				}
 			}
 
 			return result;
